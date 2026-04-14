@@ -30,4 +30,8 @@ import type { DorkOperator, DorkTemplate } from "@/types/types";
 
 export const DORK_OPERATORS: DorkOperator[] = ${JSON.stringify(operators, null, 2)};
 
-export const DORK_TEMPLATES: DorkTemplate[] = ${JSON.s
+export const DORK_TEMPLATES: DorkTemplate[] = ${JSON.stringify(templates, null, 2)};
+`;
+
+writeFileSync(resolve(root, "src/store/dork-data.ts"), output, "utf-8");
+console.log("  ✓ src/store/dork-data.ts generated");
