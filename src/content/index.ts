@@ -1,7 +1,26 @@
-import { DORK_OPERATORS, DORK_TEMPLATES } from "@/store/dork-data";
-import { CATEGORIES } from "@/store/categories";
 import type { DorkOperator, DorkTemplate, Category } from "@/types/types";
 // CSS is loaded via manifest content_scripts.css — no JS import needed
+
+// ── Data loaded from chrome.storage via service worker ──
+let DORK_OPERATORS: DorkOperator[] = [];
+let DORK_TEMPLATES: DorkTemplate[] = [];
+
+async function loadDorkData() {
+  try {
+    const data = await chrome.runtime.sendMessage({ action: "get-dork-data" });
+    if (data?.operators) DORK_OPERATORS = data.operators;
+    if (data?.templates) DORK_TEMPLATES = data.templates;
+  } catch (err) {
+    console.warn("[Dorker] Failed to load data from service worker:", err);
+  }
+}
+
+// Reactively update when storage changes (service worker synced new data)
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area !== "local") return;
+  if (changes.dork_operators) DORK_OPERATORS = changes.dork_operators.newValue;
+  if (changes.dork_templates) DORK_TEMPLATES = changes.dork_templates.newValue;
+});
 
 // SVG icons for content script (can't use React components in vanilla DOM)
 const CATEGORY_SVGS: Record<Category, string> = {
@@ -279,31 +298,112 @@ class DorkInputHandler {
   }
 }
 
-// ── FAB ──
-import logoUrl from "../../dork.png";
+// ── FAB (draggable, toggle panel) ──
+import logoUrl from "../../assets/dork.png";
+
+const FAB_POS_KEY = "dorker_fab_position";
+const DRAG_THRESHOLD = 5; // px — clicks smaller than this don't count as drag
 
 function createFab() {
   if (document.getElementById("dorker-fab")) return;
   const fab = document.createElement("button");
   fab.id = "dorker-fab";
-  fab.title = "Open Dork Help";
+  fab.title = "Toggle Dork Panel";
 
   const img = document.createElement("img");
-  img.src = chrome.runtime.getURL(logoUrl);
+  img.src = logoUrl;
   img.alt = "Dorker";
   img.className = "dorker-fab-logo";
   fab.appendChild(img);
 
+  // ── Drag state ──
+  let isDragging = false;
+  let wasDragged = false;
+  let startX = 0, startY = 0;
+  let fabX = 0, fabY = 0;
+
+  function clamp(val: number, min: number, max: number) {
+    return Math.max(min, Math.min(max, val));
+  }
+
+  function setPosition(x: number, y: number) {
+    const maxX = window.innerWidth - fab.offsetWidth;
+    const maxY = window.innerHeight - fab.offsetHeight;
+    fabX = clamp(x, 0, maxX);
+    fabY = clamp(y, 0, maxY);
+    fab.style.left = fabX + "px";
+    fab.style.top = fabY + "px";
+  }
+
+  function savePosition() {
+    chrome.storage.local.set({ [FAB_POS_KEY]: { x: fabX, y: fabY } });
+  }
+
+  // Load saved position
+  chrome.storage.local.get(FAB_POS_KEY).then((result) => {
+    const pos = result[FAB_POS_KEY];
+    if (pos && typeof pos.x === "number" && typeof pos.y === "number") {
+      setPosition(pos.x, pos.y);
+    } else {
+      setPosition(window.innerWidth - 64, 160);
+    }
+  });
+
+  // ── Pointer events for drag ──
+  fab.addEventListener("pointerdown", (e) => {
+    isDragging = true;
+    wasDragged = false;
+    startX = e.clientX - fabX;
+    startY = e.clientY - fabY;
+    fab.setPointerCapture(e.pointerId);
+    fab.style.transition = "none";
+    fab.style.cursor = "grabbing";
+    e.preventDefault();
+  });
+
+  document.addEventListener("pointermove", (e) => {
+    if (!isDragging) return;
+    const dx = e.clientX - startX - fabX;
+    const dy = e.clientY - startY - fabY;
+    if (!wasDragged && Math.abs(dx) < DRAG_THRESHOLD && Math.abs(dy) < DRAG_THRESHOLD) return;
+    wasDragged = true;
+    setPosition(e.clientX - startX, e.clientY - startY);
+  });
+
+  document.addEventListener("pointerup", () => {
+    if (!isDragging) return;
+    isDragging = false;
+    fab.style.transition = "";
+    fab.style.cursor = "";
+    if (wasDragged) {
+      savePosition();
+    }
+  });
+
+  // ── Click = toggle panel (only if not dragged) ──
   fab.addEventListener("click", (e) => {
     e.preventDefault();
     e.stopPropagation();
-    chrome.runtime.sendMessage({ action: "open-sidepanel" });
+    if (wasDragged) {
+      wasDragged = false;
+      return;
+    }
+    chrome.runtime.sendMessage({ action: "toggle-sidepanel" });
   });
+
   document.body.appendChild(fab);
+
+  // Recalculate on window resize
+  window.addEventListener("resize", () => {
+    setPosition(fabX, fabY);
+  });
 }
 
 // ── Init ──
-(function () {
+(async function () {
+  // Load data from chrome.storage before initializing
+  await loadDorkData();
+
   let handler: DorkInputHandler | null = null;
 
   function findSearchInput() {

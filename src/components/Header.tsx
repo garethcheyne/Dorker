@@ -1,14 +1,14 @@
 import { Info } from "lucide-react";
 import { Button } from "./ui/button";
 import { AboutDialog } from "./AboutDialog";
-import logoUrl from "../../dork.png";
+import logoUrl from "../../assets/dork.png";
 
 export function Header() {
   return (
     <div className="px-4 py-3.5 border-b border-border bg-card">
       <div className="flex items-center gap-3">
         <div className="relative">
-          <img src={logoUrl} alt="Dorker" className="w-10 h-10 rounded-xl ring-1 ring-border shadow-lg" />
+          <img src={logoUrl} alt="Dorker" className="w-10 h-10 rounded-xl ring-1 ring-border shadow-lg object-contain" />
           <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-card" />
         </div>
         <div className="flex-1 min-w-0">

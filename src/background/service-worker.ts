@@ -1,28 +1,66 @@
+import { syncDorkData, getDorkData } from "@/store/dork-sync";
+
+const GOOGLE_URL_PATTERN = /^https?:\/\/www\.google\./;
+
 chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true });
 
-// Track panel open state
-let panelOpen = false;
+// ── Sync on install and periodically ──
+const SYNC_ALARM = "dorker-sync";
+const SYNC_INTERVAL_MINUTES = 60;
 
-chrome.runtime.onMessage.addListener((msg, sender) => {
-  if (msg.action === "open-sidepanel" && sender.tab?.id) {
-    if (panelOpen) {
-      // Close by setting panel to empty, then restore
-      chrome.sidePanel.setOptions({ enabled: false });
-      setTimeout(() => chrome.sidePanel.setOptions({ enabled: true }), 100);
-      panelOpen = false;
+chrome.runtime.onInstalled.addListener(async () => {
+  await getDorkData();
+  await syncDorkData();
+  chrome.alarms.create(SYNC_ALARM, { periodInMinutes: SYNC_INTERVAL_MINUTES });
+});
+
+chrome.runtime.onStartup.addListener(() => {
+  syncDorkData();
+});
+
+chrome.alarms.onAlarm.addListener((alarm) => {
+  if (alarm.name === SYNC_ALARM) syncDorkData();
+});
+
+// ── Panel toggle ──
+const panelOpenTabs = new Set<number>();
+
+chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  if (msg.action === "toggle-sidepanel" && sender.tab?.id) {
+    const tabId = sender.tab.id;
+    const windowId = sender.tab.windowId;
+
+    // Only allow on Google domains
+    if (!sender.tab.url || !GOOGLE_URL_PATTERN.test(sender.tab.url)) return;
+
+    if (panelOpenTabs.has(tabId)) {
+      chrome.sidePanel.setOptions({ tabId, enabled: false }).then(() => {
+        panelOpenTabs.delete(tabId);
+        setTimeout(() => chrome.sidePanel.setOptions({ tabId, enabled: true }), 100);
+      });
     } else {
-      chrome.sidePanel.open({ tabId: sender.tab.id });
-      panelOpen = true;
+      chrome.sidePanel.open({ windowId }).then(() => {
+        panelOpenTabs.add(tabId);
+      }).catch((err) => console.warn("[Dorker] Panel open failed:", err));
     }
+  }
+
+  if (msg.action === "get-dork-data") {
+    getDorkData().then((data) => sendResponse(data));
+    return true;
   }
 });
 
-// Track when panel connects/disconnects
 chrome.runtime.onConnect.addListener((port) => {
   if (port.name === "dorker-sidepanel") {
-    panelOpen = true;
+    const tabId = port.sender?.tab?.id;
+    if (tabId) panelOpenTabs.add(tabId);
     port.onDisconnect.addListener(() => {
-      panelOpen = false;
+      if (tabId) panelOpenTabs.delete(tabId);
     });
   }
+});
+
+chrome.tabs.onRemoved.addListener((tabId) => {
+  panelOpenTabs.delete(tabId);
 });

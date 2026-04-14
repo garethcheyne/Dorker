@@ -8,7 +8,7 @@ import {
   DialogTrigger,
 } from "./ui/dialog";
 import { Separator } from "./ui/separator";
-import logoUrl from "../../dork.png";
+import logoUrl from "../../assets/dork.png";
 
 export function AboutDialog({ children }: { children: React.ReactNode }) {
   return (
@@ -22,7 +22,7 @@ export function AboutDialog({ children }: { children: React.ReactNode }) {
           <img
             src={logoUrl}
             alt="Dorker"
-            className="w-16 h-16 bg-transparent mx-auto"
+            className="w-16 h-16 rounded-2xl p-1 object-contain mx-auto"
           />
           <DialogTitle className="text-lg mt-2">Dorker</DialogTitle>
           <DialogDescription className="text-muted-foreground text-xs">

@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="dork.png" alt="Dorker Logo" width="128" height="128" />
+  <img src="assets/dork.png" alt="Dorker Logo" width="128" height="128" />
 </p>
 
 <h1 align="center">Dorker</h1>
@@ -25,14 +25,17 @@ No more Googling "how to Google".
 ## Features
 
 - **Side Panel UI** — lives alongside your search, never gets in the way
+- **Floating Action Button** — draggable FAB on every Google page to toggle the side panel; position is saved across sessions
 - **31 Operators** — every Google dork operator with descriptions, examples, and one-click insert
 - **14 Templates** — pre-built dork queries for login pages, exposed files, config leaks, admin panels, and more
 - **Autocomplete** — type `/` in Google's search box to get instant operator suggestions
 - **Template mode** — press `Tab` to browse and insert full dork templates
 - **Category filtering** — filter operators by Domain, URL, Content, File, Time, Meta, and Logic
 - **Search** — fuzzy search across all operators and templates
+- **Auto-updating data** — operators and templates sync from [`dork.yaml`](dork.yaml) on GitHub, so you always have the latest without updating the extension
+- **Offline-first** — data is cached in `chrome.storage.local`; works without a connection
 - **Dark theme** — polished dark UI built with shadcn/ui components and Radix primitives
-- **Zero permissions abuse** — only requests `sidePanel` and `activeTab`
+- **Minimal permissions** — only requests `sidePanel`, `activeTab`, `storage`, `alarms`, and `tabs`
 
 ## Installation
 
@@ -66,17 +69,27 @@ npm run build
 | Styling | Tailwind CSS 4 + shadcn/ui + Radix UI |
 | Build | Vite 8 + CRXJS |
 | Language | TypeScript 6 |
+| Testing | Vitest |
 | Extension API | Chrome Manifest V3 |
 
 ## Project Structure
 
 ```
 ├── manifest.json            # Chrome extension manifest (MV3)
-├── dork.png                 # Extension icon / logo
+├── dork.yaml                # Source of truth for operators & templates
+├── assets/dork.png          # Extension mascot / logo
+├── icons/                   # Toolbar icons (16/32/48/128)
 ├── src/
-│   ├── background/          # Service worker (side panel lifecycle)
-│   ├── content/             # Content script (autocomplete dropdown on Google)
-│   ├── shared/              # Shared types, dork data, categories
+│   ├── background/          # Service worker (sync, panel toggle, alarms)
+│   ├── content/             # Content script (autocomplete + draggable FAB)
+│   ├── store/
+│   │   ├── dork-data.ts      # Bundled fallback data
+│   │   ├── dork-sync.ts      # Fetch & sync from GitHub
+│   │   ├── dork-data.test.ts # Data structure tests
+│   │   └── dork-sync.test.ts # Sync logic tests
+│   ├── hooks/
+│   │   └── useDorkData.ts    # React hook (reads chrome.storage)
+│   ├── shared/              # Types, categories
 │   └── sidepanel/           # React side panel app
 │       ├── App.tsx           # Main application
 │       ├── components/
@@ -85,7 +98,6 @@ npm run build
 │       │   ├── AboutDialog.tsx
 │       │   ├── CategoryBadge.tsx
 │       │   └── ui/           # shadcn/ui components
-│       ├── hooks/
 │       └── lib/
 ```
 

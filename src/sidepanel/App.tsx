@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, Terminal, LayoutTemplate, ArrowRight, Check, Sparkles, ChevronRight, AlignLeft } from "lucide-react";
+import { Search, Terminal, LayoutTemplate, ArrowRight, Check, Sparkles, ChevronRight, AlignLeft, Loader2 } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
@@ -7,12 +7,13 @@ import { Badge } from "@/components/ui/badge";
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { DORK_OPERATORS, DORK_TEMPLATES } from "@/store/dork-data";
+import { useDorkData } from "@/hooks/useDorkData";
 import { CATEGORIES, CATEGORY_ORDER } from "@/store/categories";
 import type { Category, DorkOperator, DorkTemplate } from "@/types/types";
 import { insertDork, insertTemplate } from "@/hooks/useChromeMessage";
 
 export default function App() {
+  const { operators, templates, loading } = useDorkData();
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState<Category | null>(null);
   const [flashId, setFlashId] = useState<string | null>(null);
@@ -25,7 +26,7 @@ export default function App() {
 
   const q = search.toLowerCase();
 
-  const filteredOps = DORK_OPERATORS.filter(op => {
+  const filteredOps = operators.filter(op => {
     if (activeCategory && op.category !== activeCategory) return false;
     if (q && !op.keyword.toLowerCase().includes(q) && !op.description.toLowerCase().includes(q)) return false;
     return true;
@@ -34,9 +35,18 @@ export default function App() {
   const grouped: Partial<Record<Category, DorkOperator[]>> = {};
   for (const op of filteredOps) (grouped[op.category] ??= []).push(op);
 
-  const filteredTpls = DORK_TEMPLATES.filter(t =>
+  const filteredTpls = templates.filter(t =>
     !q || t.name.toLowerCase().includes(q) || t.description.toLowerCase().includes(q)
   );
+
+  if (loading) {
+    return (
+      <div className="flex flex-col h-full bg-background items-center justify-center gap-3">
+        <Loader2 className="w-6 h-6 text-primary animate-spin" />
+        <p className="text-xs text-muted-foreground">Loading operators…</p>
+      </div>
+    );
+  }
 
   return (
     <TooltipProvider delayDuration={300}>
@@ -50,12 +60,12 @@ export default function App() {
               <TabsTrigger value="operators">
                 <Terminal className="w-3.5 h-3.5" />
                 Operators
-                <span className="ml-0.5 text-[9px] bg-background/60 px-1.5 py-0.5 rounded-full font-mono">{DORK_OPERATORS.length}</span>
+                <span className="ml-0.5 text-[9px] bg-background/60 px-1.5 py-0.5 rounded-full font-mono">{operators.length}</span>
               </TabsTrigger>
               <TabsTrigger value="templates">
                 <LayoutTemplate className="w-3.5 h-3.5" />
                 Templates
-                <span className="ml-0.5 text-[9px] bg-background/60 px-1.5 py-0.5 rounded-full font-mono">{DORK_TEMPLATES.length}</span>
+                <span className="ml-0.5 text-[9px] bg-background/60 px-1.5 py-0.5 rounded-full font-mono">{templates.length}</span>
               </TabsTrigger>
             </TabsList>
           </div>

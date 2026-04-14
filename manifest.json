@@ -1,15 +1,23 @@
 {
   "manifest_version": 3,
   "name": "Dorker - Google Dork Assistant",
-  "version": "1.0.0",
+  "version": "2026.04.14",
   "description": "Autocomplete and assistant for Google dorking operators in the search box",
-  "permissions": ["sidePanel", "activeTab"],
+  "permissions": ["sidePanel", "activeTab", "storage", "alarms", "tabs"],
   "action": {
-    "default_icon": "dork.png",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    },
     "default_title": "Dork Help"
   },
   "icons": {
-    "128": "dork.png"
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
   },
   "background": {
     "service_worker": "src/background/service-worker.ts"
@@ -64,6 +72,12 @@
       "js": ["src/content/index.ts"],
       "css": ["src/content/content.css"],
       "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["assets/*.png"],
+      "matches": ["<all_urls>"]
     }
   ]
 }
