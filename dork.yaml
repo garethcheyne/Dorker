@@ -1,0 +1,247 @@
+# Dorker — Operators & Templates
+# Single source of truth. Edit this file, then run: npm run generate
+version: 2026.04.14.2337
+
+operators:
+  - keyword: "site:"
+    description: Restrict results to a specific domain or subdomain
+    example: "site:example.com"
+    category: domain
+    placeholder: example.com
+
+  - keyword: "cache:"
+    description: View Google's cached version of a page
+    example: "cache:www.google.com"
+    category: domain
+    placeholder: example.com
+
+  - keyword: "related:"
+    description: Find sites similar to a given domain
+    example: "related:www.google.com"
+    category: domain
+    placeholder: example.com
+
+  - keyword: "info:"
+    description: Get info Google has about a URL
+    example: "info:www.google.com"
+    category: domain
+    placeholder: example.com
+
+  - keyword: "link:"
+    description: Find pages that link to a specific URL
+    example: "link:www.google.com"
+    category: domain
+    placeholder: example.com
+
+  - keyword: "inurl:"
+    description: Find pages with a keyword in the URL
+    example: "inurl:admin"
+    category: url
+    placeholder: keyword
+
+  - keyword: "allinurl:"
+    description: All keywords must appear in the URL
+    example: "allinurl:admin login"
+    category: url
+    placeholder: word1 word2
+
+  - keyword: "intitle:"
+    description: Find pages with a keyword in the title
+    example: 'intitle:"index of"'
+    category: content
+    placeholder: keyword
+
+  - keyword: "allintitle:"
+    description: All keywords must appear in the title
+    example: "allintitle:admin panel login"
+    category: content
+    placeholder: word1 word2
+
+  - keyword: "intext:"
+    description: Find pages with a keyword in the body text
+    example: "intext:password"
+    category: content
+    placeholder: keyword
+
+  - keyword: "allintext:"
+    description: All keywords must appear in the body text
+    example: "allintext:username password"
+    category: content
+    placeholder: word1 word2
+
+  - keyword: "inanchor:"
+    description: Find pages linked with specific anchor text
+    example: "inanchor:rat"
+    category: content
+    placeholder: keyword
+
+  - keyword: "allinanchor:"
+    description: All keywords must appear in anchor text of links
+    example: "allinanchor:best resource"
+    category: content
+    placeholder: word1 word2
+
+  - keyword: "inpostauthor:"
+    description: Find blog posts by a specific author
+    example: 'inpostauthor:"John Smith"'
+    category: content
+    placeholder: author name
+
+  - keyword: "allinpostauthor:"
+    description: All keywords must match the blog post author
+    example: 'allinpostauthor:"John Smith"'
+    category: content
+    placeholder: author name
+
+  - keyword: "filetype:"
+    description: Search for specific file types
+    example: "filetype:pdf"
+    category: file
+    placeholder: pdf
+
+  - keyword: "ext:"
+    description: Search by file extension (alias for filetype)
+    example: "ext:sql"
+    category: file
+    placeholder: sql
+
+  - keyword: "numrange:"
+    description: Search for a range of numbers
+    example: "numrange:321-325"
+    category: meta
+    placeholder: 100-200
+
+  - keyword: "define:"
+    description: Get the definition of a word
+    example: "define:hacking"
+    category: meta
+    placeholder: word
+
+  - keyword: "before:"
+    description: Results from before a specific date
+    example: "before:2023-01-01"
+    category: time
+    placeholder: YYYY-MM-DD
+
+  - keyword: "after:"
+    description: Results from after a specific date
+    example: "after:2023-01-01"
+    category: time
+    placeholder: YYYY-MM-DD
+
+  - keyword: '""'
+    description: Exact match phrase search
+    example: '"index of /admin"'
+    category: logic
+    placeholder: ""
+
+  - keyword: "|"
+    description: OR — return results matching either term
+    example: "admin | administrator"
+    category: logic
+    placeholder: ""
+
+  - keyword: "OR"
+    description: Boolean OR between terms
+    example: "admin OR administrator"
+    category: logic
+    placeholder: ""
+
+  - keyword: "&"
+    description: AND — require both terms in results
+    example: "admin & login"
+    category: logic
+    placeholder: ""
+
+  - keyword: "AND"
+    description: Explicit boolean AND between terms
+    example: "admin AND login"
+    category: logic
+    placeholder: ""
+
+  - keyword: "-"
+    description: Exclude a term or operator from results
+    example: "-site:pinterest.com"
+    category: logic
+    placeholder: ""
+
+  - keyword: "+"
+    description: Force inclusion of a term in results
+    example: "+admin +login"
+    category: logic
+    placeholder: ""
+
+  - keyword: "~"
+    description: Include synonyms of a word in results
+    example: "~security"
+    category: logic
+    placeholder: ""
+
+  - keyword: "*"
+    description: Wildcard — match any word in a phrase
+    example: '"admin * password"'
+    category: logic
+    placeholder: ""
+
+  - keyword: "AROUND("
+    description: Find words within N words of each other
+    example: "password AROUND(3) reset"
+    category: logic
+    placeholder: "N)"
+
+templates:
+  - name: Find login pages
+    query: "site:{domain} inurl:login | inurl:signin | inurl:admin"
+    description: Discover login/admin pages on a target domain
+
+  - name: Exposed documents
+    query: "site:{domain} filetype:pdf | filetype:doc | filetype:xls | filetype:xlsx | filetype:ppt"
+    description: Find publicly accessible documents
+
+  - name: Directory listings
+    query: 'site:{domain} intitle:"index of"'
+    description: Find open directory listings
+
+  - name: Config files
+    query: "site:{domain} filetype:env | filetype:yml | filetype:xml | filetype:conf | filetype:ini"
+    description: Find exposed configuration files
+
+  - name: SQL files
+    query: "site:{domain} filetype:sql"
+    description: Find exposed SQL database dumps
+
+  - name: Backup files
+    query: "site:{domain} filetype:bak | filetype:old | filetype:backup | filetype:tar.gz"
+    description: Find backup files left on server
+
+  - name: SQL error messages
+    query: 'site:{domain} intext:"sql syntax" | intext:"mysql_fetch" | intext:"Warning: mysql"'
+    description: Find pages leaking SQL error details
+
+  - name: Admin panels
+    query: "site:{domain} inurl:wp-admin | inurl:wp-login | inurl:phpmyadmin | inurl:cpanel"
+    description: Find sensitive admin panels and tools
+
+  - name: Exposed passwords
+    query: "site:{domain} filetype:log intext:password"
+    description: Find log files containing passwords
+
+  - name: Subdomains
+    query: "site:*.{domain} -www.{domain}"
+    description: Enumerate subdomains via Google
+
+  - name: Open cameras
+    query: 'site:{domain} inurl:"view/index.shtml" | intitle:"Live View / - AXIS"'
+    description: Find exposed IP cameras
+
+  - name: Exposed .git
+    query: 'site:{domain} inurl:".git" intitle:"index of"'
+    description: Find exposed git repositories
+
+  - name: PHP errors
+    query: 'site:{domain} "PHP Parse error" | "PHP Warning" | "PHP Error"'
+    description: Find pages with PHP error messages
+
+  - name: Juicy files
+    query: "site:{domain} ext:log | ext:txt | ext:conf | ext:cnf | ext:ini | ext:env | ext:bak | ext:sql"
+    description: Broad search for interesting file extensions
