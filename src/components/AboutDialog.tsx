@@ -26,7 +26,7 @@ export function AboutDialog({ children }: { children: React.ReactNode }) {
           />
           <DialogTitle className="text-lg mt-2">Dorker</DialogTitle>
           <DialogDescription className="text-muted-foreground text-xs">
-            Google Dork Assistant v1.0.0
+            Google Dork Assistant v{chrome.runtime.getManifest().version}
           </DialogDescription>
         </DialogHeader>
 

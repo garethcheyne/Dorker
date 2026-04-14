@@ -61,4 +61,38 @@ describe("dork-data: templates", () => {
       expect(t.query).toContain("{domain}");
     }
   });
+
+  it("no template query is empty or whitespace-only", () => {
+    for (const t of DORK_TEMPLATES) {
+      expect(t.query.trim().length).toBeGreaterThan(0);
+    }
+  });
+});
+
+describe("dork-data: cross-validation", () => {
+  it("operator keywords referenced in template queries exist", () => {
+    const keywords = new Set(DORK_OPERATORS.map((op) => op.keyword.replace(/[:(]/g, "")));
+    for (const t of DORK_TEMPLATES) {
+      // Strip quoted strings so we don't match words like Warning: inside "Warning: mysql"
+      const unquoted = t.query.replace(/"[^"]*"/g, "");
+      const used = unquoted.match(/\b[a-z]+:/gi) || [];
+      for (const op of used) {
+        const base = op.replace(":", "");
+        if (base === "http" || base === "https" || base === "www") continue;
+        expect(keywords, `template "${t.name}" uses unknown operator "${op}"`).toContain(base);
+      }
+    }
+  });
+
+  it("every operator description is under 120 characters", () => {
+    for (const op of DORK_OPERATORS) {
+      expect(op.description.length, `${op.keyword} description too long`).toBeLessThanOrEqual(120);
+    }
+  });
+
+  it("every operator example is non-empty", () => {
+    for (const op of DORK_OPERATORS) {
+      expect(op.example.trim().length, `${op.keyword} example is empty`).toBeGreaterThan(0);
+    }
+  });
 });

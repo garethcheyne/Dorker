@@ -9,8 +9,8 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/garethcheyne/Dorker/releases"><img src="https://img.shields.io/github/v/release/garethcheyne/Dorker?style=flat-square&color=818cf8" alt="Release" /></a>
-  <a href="https://github.com/garethcheyne/Dorker/blob/main/LICENSE"><img src="https://img.shields.io/github/license/garethcheyne/Dorker?style=flat-square&color=818cf8" alt="License" /></a>
+  <a href="https://github.com/garethcheyne/Dorker"><img src="https://img.shields.io/badge/version-2026.04.14-818cf8?style=flat-square" alt="Version" /></a>
+  <a href="https://github.com/garethcheyne/Dorker/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-818cf8?style=flat-square" alt="License" /></a>
   <a href="https://github.com/garethcheyne/Dorker"><img src="https://img.shields.io/github/stars/garethcheyne/Dorker?style=flat-square&color=818cf8" alt="Stars" /></a>
 </p>
 

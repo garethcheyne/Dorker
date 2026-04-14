@@ -9,11 +9,16 @@ export function useDorkData() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getDorkData().then((data: DorkStore) => {
-      setOperators(data.operators);
-      setTemplates(data.templates);
-      setLoading(false);
-    });
+    getDorkData()
+      .then((data: DorkStore) => {
+        setOperators(data.operators);
+        setTemplates(data.templates);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.warn("[Dorker] Failed to load data:", err);
+        setLoading(false);
+      });
 
     // Listen for storage changes (e.g. service worker synced new data)
     const listener = (changes: { [key: string]: chrome.storage.StorageChange }, area: string) => {

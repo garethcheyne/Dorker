@@ -15,7 +15,7 @@ export function Footer() {
             <span>templates</span>
           </span>
         </div>
-        <span className="text-[10px] text-muted-foreground/40 font-mono">v1.0</span>
+        <span className="text-[10px] text-muted-foreground/40 font-mono">v{chrome.runtime.getManifest().version}</span>
       </div>
     </div>
   );

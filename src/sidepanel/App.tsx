@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, Terminal, LayoutTemplate, ArrowRight, Check, Sparkles, ChevronRight, AlignLeft, Loader2 } from "lucide-react";
+import { Search, Terminal, LayoutTemplate, ArrowRight, Check, Sparkles, ChevronRight, AlignLeft, Loader2, Globe } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
@@ -8,12 +8,14 @@ import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/comp
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { useDorkData } from "@/hooks/useDorkData";
+import { useActiveTabGoogle } from "@/hooks/useActiveTabGoogle";
 import { CATEGORIES, CATEGORY_ORDER } from "@/store/categories";
 import type { Category, DorkOperator, DorkTemplate } from "@/types/types";
 import { insertDork, insertTemplate } from "@/hooks/useChromeMessage";
 
 export default function App() {
   const { operators, templates, loading } = useDorkData();
+  const isGoogle = useActiveTabGoogle();
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState<Category | null>(null);
   const [flashId, setFlashId] = useState<string | null>(null);
@@ -44,6 +46,34 @@ export default function App() {
       <div className="flex flex-col h-full bg-background items-center justify-center gap-3">
         <Loader2 className="w-6 h-6 text-primary animate-spin" />
         <p className="text-xs text-muted-foreground">Loading operators…</p>
+      </div>
+    );
+  }
+
+  if (!isGoogle) {
+    return (
+      <div className="flex flex-col h-full bg-background overflow-hidden">
+        <Header />
+        <div className="flex-1 flex flex-col items-center justify-center gap-4 px-6">
+          <div className="w-14 h-14 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center">
+            <Globe className="w-7 h-7 text-primary" />
+          </div>
+          <div className="text-center space-y-2">
+            <p className="text-sm font-semibold text-foreground">Not on Google</p>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Navigate to a Google search tab to use Dorker.
+              Operators and templates will insert directly into the search box.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => chrome.tabs.create({ url: "https://www.google.com" })}
+            className="mt-2 text-xs font-medium text-primary hover:text-primary/80 bg-primary/10 hover:bg-primary/15 px-4 py-2 rounded-lg transition-colors cursor-pointer"
+          >
+            Open Google Search
+          </button>
+        </div>
+        <Footer />
       </div>
     );
   }

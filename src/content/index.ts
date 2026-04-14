@@ -436,7 +436,13 @@ function createFab() {
   }
 
   if (document.body) init();
-  const observer = new MutationObserver(() => init());
+  const observer = new MutationObserver(() => {
+    if (findSearchInput()?.dataset.dorkerAttached) {
+      observer.disconnect();
+      return;
+    }
+    init();
+  });
   observer.observe(document.body || document.documentElement, { childList: true, subtree: true });
   setTimeout(init, 500);
   setTimeout(init, 1500);

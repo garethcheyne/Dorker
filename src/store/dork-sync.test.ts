@@ -198,4 +198,37 @@ describe("dork-sync: syncDorkData", () => {
     const result = await syncDorkData();
     expect(result).toBe(false);
   });
+
+  it("returns false when fetch throws a network error", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("Network error")));
+    const { syncDorkData } = await import("@/store/dork-sync");
+    const result = await syncDorkData();
+    expect(result).toBe(false);
+  });
+
+  it("returns false when YAML has operators but no templates", async () => {
+    const yamlText = `version: 2\noperators:\n  - keyword: "site:"\n    description: test\n    example: test\n    category: domain\n    placeholder: ""`;
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, text: async () => yamlText }));
+    const { syncDorkData } = await import("@/store/dork-sync");
+    const result = await syncDorkData();
+    expect(result).toBe(false);
+  });
+
+  it("returns false when YAML has templates but no operators", async () => {
+    const yamlText = `version: 2\ntemplates:\n  - name: Test\n    query: "site:{domain}"\n    description: test`;
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, text: async () => yamlText }));
+    const { syncDorkData } = await import("@/store/dork-sync");
+    const result = await syncDorkData();
+    expect(result).toBe(false);
+  });
+
+  it("stores lastSync timestamp after successful sync", async () => {
+    storage.dork_version = "old";
+    const yamlText = `version: new\noperators:\n  - keyword: "site:"\n    description: test\n    example: test\n    category: domain\n    placeholder: ""\ntemplates:\n  - name: Test\n    query: "site:{domain}"\n    description: test`;
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, text: async () => yamlText }));
+    const { syncDorkData } = await import("@/store/dork-sync");
+    await syncDorkData();
+    expect(storage["dork_last_sync"]).toBeTruthy();
+    expect(() => new Date(storage["dork_last_sync"] as string)).not.toThrow();
+  });
 });
