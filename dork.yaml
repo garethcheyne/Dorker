@@ -1,6 +1,6 @@
 # Dorker — Operators & Templates
 # Single source of truth. Edit this file, then run: npm run generate
-version: 2026.04.14.2337
+version: 2026.04.15.0800
 
 operators:
   - keyword: "site:"
